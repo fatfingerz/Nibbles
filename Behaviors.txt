@@ -1,0 +1,15 @@
+Snake starts out small.
+
+When it eats a target it grows.
+
+If it crashes into a wall or itself, snake dies.
+
+After a death, snake is small again and target is randomly replotted, starting with 1.
+
+When all 9 targets are successfully eaten, the level increases.
+
+Levels > 1 contain obstacles.
+
+Scoring: (target # * 100)
+
+When snake grows, the end pauses while the front grows by however much.

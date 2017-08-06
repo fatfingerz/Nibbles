@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="style.css">
+	<title>Nibbles</title>
+</head>
+<body>
+	<div id="topmost">
+		<div id="info">
+			SAMMY--> Lives: <span id="lives"></span>
+			<div id="scorecont">
+				<span id="score">0</span>
+			</div>
+		</div>
+		<div id="container">
+			<table id="tbl" cellspacing="0" cellpadding="0"></table>
+			<div id="msgBox"></div>
+			<div id="target"></div>
+		</div>
+	</div>
+	<div id="debug"></div>
+	<audio id="startgame" src="sounds/startgame3.mp3" autostart="false" ></audio>
+	<audio id="point" src="sounds/point.mp3" autostart="false" ></audio>
+	<audio id="crash" src="sounds/crash2.mp3" autostart="false" ></audio>
+	<audio id="endgame" src="sounds/gameover.mp3" autostart="false" ></audio>
+</body>
+<script language="javascript" src="levels.js"></script>
+<script language="javascript" src="nibbles.js"></script>
+</html>
