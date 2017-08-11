@@ -271,6 +271,7 @@ function collideWithWall() {
     killEvents();
     clearBoard();
     drawArena();
+    isGrowing = false;
     player.targetIdx = 0;
     lifeMsg.innerHTML = (player.lives > 0) ? --player.lives : (player.lives=0);
     if(player.lives > 0)
@@ -292,6 +293,7 @@ function displayNextLevel() {
     killEvents();
     clearBoard();
     drawArena();
+    isGrowing = false;
     player.targetIdx = 0;
     msg.innerHTML = "Level "+levels[player.level].level+", Push Space";
     msg.style.height = '30px';
