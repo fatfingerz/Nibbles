@@ -12,13 +12,15 @@ var msg;
 var start;
 var point;
 var crash;
+var lengthDiff=0;
+var isGrowing=false;
 var cols=0; // For the arena
 var rows=0; // For the arena
 var speed=75; // Speed of the snake in millisecond. Keep it above 10. 50 is all right
 var walls = [];
 
 var targets = [1,2,3,4,5,6,7,8,9];
-var lengths = [1,2,5,11,20,30,41,56,68]; // Various lengths of snake at each target
+var lengths = [6,12,20,32,56,86,121,161,206]; // Various lengths of snake at each target
 
 var Direction = {
     RIGHT: 0,
@@ -41,97 +43,48 @@ var player = {
     gameOver: false
 };
 
-function growTheSnake() {
-    var desiredLen = lengths[targets[player.targetIdx]];
-    if(snake.len != desiredLen) {
-        var diff = desiredLen - snake.len;
-        var col = snake.blocks[0].col;
-        var row = snake.blocks[0].row;
-        switch(snake.dir) {
-            case Direction.UP:
-                for(var i=0; i < diff; i++) {
-                    setTimeout(function(){
-                        var next = row-1;
-                        var elm = document.getElementById("r"+next+"c"+col);
-                        snake.blocks.unshift({col: col, row: --row});
-                        if(row == 1 ||
-                           window.getComputedStyle(elm, null).getPropertyValue("background-color")
-                            == "rgb(255, 0, 255)") collideWithWall();
-                        else lengthenSnake();
-                    }, speed);
-                }
-                break;
-            case Direction.DOWN:
-                for(var i=0; i < diff; i++) {
-                    setTimeout(function(){
-                        var next = row+1;
-                        var elm = document.getElementById("r"+next+"c"+col);
-                        snake.blocks.unshift({col: col, row: ++row});
-                        if(row == rows ||
-                           window.getComputedStyle(elm, null).getPropertyValue("background-color")
-                            == "rgb(255, 0, 255)") collideWithWall();
-                        else lengthenSnake();
-                    }, speed);
-                }
-                break;
-            case Direction.LEFT:
-                for(var i=0; i < diff; i++) {
-                    setTimeout(function(){
-                        var next = col-1;
-                        var elm = document.getElementById("r"+row+"c"+next);
-                        snake.blocks.unshift({col: --col, row: row});
-                        if(col == 1 ||
-                           window.getComputedStyle(elm, null).getPropertyValue("background-color")
-                            == "rgb(255, 0, 255)") collideWithWall();
-                        else lengthenSnake();
-                    }, speed);
-                }
-                break;
-            case Direction.RIGHT:
-                for(var i=0; i < diff; i++) {
-                    setTimeout(function(){
-                        var next = col+1;
-                        var elm = document.getElementById("r"+row+"c"+next);
-                        snake.blocks.unshift({col: ++col, row: row});
-                        if(col == cols ||
-                           window.getComputedStyle(elm, null).getPropertyValue("background-color")
-                            == "rgb(255, 0, 255)") collideWithWall();
-                        else lengthenSnake();
-                    }, speed);
-                }
-                break;
-        }
-        snake.len += diff;
-    }
-}
-
 function killEvents() {
     for(var x=intV; x > 0; x--) clearInterval(x);
 }
 
-function hideSnake(elem) {
-    var el = document.getElementById(elem);
+function hideSnake(id) {
+    var el = document.getElementById(id);
     if(el !== null)
         el.style.background = 'blue';
 }
 
-function showSnake(elem) {
-    var el = document.getElementById(elem);
+function showSnake(id) {
+    var el = document.getElementById(id);
     if(el !== null)
         el.style.background = 'yellow';
 }
 
 function lengthenSnake() {
-    var elem = "r"+snake.blocks[0].row+"c"+snake.blocks[0].col;
-    showSnake(elem);
+    var id = "r"+snake.blocks[0].row+"c"+snake.blocks[0].col;
+    var elm = document.getElementById(id);
+    if(window.getComputedStyle(elm, null).getPropertyValue("background-color")=="rgb(255, 255, 0)") {
+        isGrowing = false;
+        collideWithWall();
+    } else {
+        showSnake(id);
+        snake.len = snake.blocks.length;
+        var desiredLen = lengths[player.targetIdx-1];
+        if(snake.len == desiredLen) isGrowing = false;
+    }
 }
 
 function moveSnake() {
-    var elem = "r"+snake.blocks[0].row+"c"+snake.blocks[0].col;
-    showSnake(elem);
-    elem = "r"+snake.blocks[snake.blocks.length-1].row+"c"+snake.blocks[snake.blocks.length-1].col;
-    hideSnake(elem);
-    snake.blocks.pop(); // remove last element since we already hid it
+    var id = "r"+snake.blocks[0].row+"c"+snake.blocks[0].col;
+    var elm = document.getElementById(id);
+    if(window.getComputedStyle(elm, null).getPropertyValue("background-color")=="rgb(255, 255, 0)")
+        collideWithWall();
+    else {
+        showSnake(id);
+        id = "r"+snake.blocks[snake.blocks.length-1].row+"c"+snake.blocks[snake.blocks.length-1].col;
+        hideSnake(id);
+        snake.blocks.pop(); // remove last element since we already hid it
+        snake.len = snake.blocks.length;
+    }
     showDebug();
 }
 
@@ -143,7 +96,12 @@ function plotTarget() {
     targX = getRandomCoordinate(cols);
     targY = getRandomCoordinate(rows);
     target = document.getElementById("r"+targY+"c"+targX);
-    target.innerHTML = targets[player.targetIdx];
+    // Make sure we're not putting target in a wall
+    if(window.getComputedStyle(target, null).getPropertyValue("background-color") !== "rgb(255, 0, 255)" &&
+       window.getComputedStyle(target, null).getPropertyValue("background-color") !== "rgb(255, 255, 0)")
+        target.innerHTML = targets[player.targetIdx];
+    else
+        plotTarget();
 }
 
 function initGame() {
@@ -191,12 +149,15 @@ function moveUp() {
         var row = snake.blocks[0].row;
         var next = row-1;
         var elm = document.getElementById("r"+next+"c"+col);
-        if(row == 1 || window.getComputedStyle(elm, null).getPropertyValue("background-color")
+        if(row <= 1 || window.getComputedStyle(elm, null).getPropertyValue("background-color")
            == "rgb(255, 0, 255)") {
             collideWithWall();
         } else {
             snake.blocks.unshift({col: col, row: --row});
-            moveSnake();
+            if(!isGrowing)
+                moveSnake();
+            else 
+                lengthenSnake();
             if(hitTarget()) drawNextTarget();
         }
     }
@@ -210,12 +171,16 @@ function moveDown() {
         var row = snake.blocks[0].row;
         var next = parseInt(row+1, 10);
         var elm = document.getElementById("r"+next+"c"+col);
-        if(row == rows || window.getComputedStyle(elm, null).getPropertyValue("background-color")
+        if(elm == null || row == rows ||
+           window.getComputedStyle(elm, null).getPropertyValue("background-color")
            == "rgb(255, 0, 255)") {
             collideWithWall();
         } else {
             snake.blocks.unshift({col: col, row: ++row});
-            moveSnake();
+            if(!isGrowing)
+                moveSnake();
+            else
+                lengthenSnake();
             if(hitTarget()) drawNextTarget();
         }
     }
@@ -229,12 +194,16 @@ function moveLeft() {
         var row = snake.blocks[0].row;
         var next =col-1;
         var elm = document.getElementById("r"+row+"c"+next);
-        if(col == 1 || window.getComputedStyle(elm, null).getPropertyValue("background-color")
+        if(elm == null || col <= 1 || 
+           window.getComputedStyle(elm, null).getPropertyValue("background-color")
            == "rgb(255, 0, 255)") {
             collideWithWall();
         } else {
             snake.blocks.unshift({col: --col, row: row});
-            moveSnake();
+            if(!isGrowing)
+                moveSnake();
+            else
+                lengthenSnake();
             if(hitTarget()) drawNextTarget();
         }
     }
@@ -248,12 +217,16 @@ function moveRight() {
         var row = snake.blocks[0].row;
         var next = col+1;
         var elm = document.getElementById("r"+row+"c"+next);
-        if(col == cols || window.getComputedStyle(elm, null).getPropertyValue("background-color")
+        if(elm == null || col == cols || 
+           window.getComputedStyle(elm, null).getPropertyValue("background-color")
            == "rgb(255, 0, 255)") {
             collideWithWall();
         } else {
             snake.blocks.unshift({col: ++col, row: row});
-            moveSnake();
+            if(!isGrowing)
+                moveSnake();
+            else
+                lengthenSnake();
             if(hitTarget()) drawNextTarget();
         }
     }
@@ -271,7 +244,7 @@ function drawNextTarget() {
     } else {
         target.innerHTML = '';
         player.targetIdx = (++player.targetIdx < 9) ? player.targetIdx : 0;
-        growTheSnake();
+        isGrowing = true;
         targX=targY=-1;
         plotTarget();
     }
@@ -343,7 +316,7 @@ function showDebug() {
     var debug = document.getElementById("debug");
     var dblog = "<b>blocks:</b> "+snake.blocks.length+
                 "<br/>Level: "+levels[player.level].level+
-                "<br/>Start dir: "+levels[player.level].startDir;
+                "<br/>Length: "+lengths[player.targetIdx];
     debug.innerHTML = dblog;
 }
 
@@ -358,26 +331,24 @@ function initLevel(idx) {
 
 function drawArena() {
     initLevel(player.level);
-    var tbl = document.getElementById("tbl");
+    var arena = document.getElementById("arena");
     var grid = "";
     rows = 0;
-    for(var y=0;y<55;y++) { // ROWS
-        grid += "<tr style='width:800px; height:10px;'>";
+    for(var y=0;y<37;y++) { // ROWS
         rows++;
         cols = 0;
         for(var x=0;x<73;x++) { // COLS
-            grid += "<td id='r"+(y+1)+"c"+(x+1)+"' style='width:10px; height:10px;' class='";
+            grid += "<div id='r"+(y+1)+"c"+(x+1)+"' class='";
             if(walls.length > 0 && walls[0].row == y+1 && walls[0].col == x+1){
                 grid += "wall ";
                 walls.shift();
             }
             if(debugmode) grid += "bordered";
-            grid += "'></td>";
+            grid += "'></div>";
             cols++;
         }
-        grid += "</tr>";
     }
-    tbl.innerHTML = grid;
+    arena.innerHTML = grid;
 }
 
 // Execute once document is ready
@@ -387,6 +358,8 @@ function drawArena() {
             start.play();
             player.lives = 5;
             player.level = 0;
+            player.score = 0;
+            score.innerHTML = player.score;
             player.gameOver = false;
             msg.style.display = 'none';
             displayNextLevel();

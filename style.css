@@ -1,5 +1,5 @@
 .bordered {
-    border: 0px dotted black;
+    border: 1px dotted black;
 }
 #topmost {
     margin: 0 auto;
@@ -13,7 +13,7 @@
 	border: 10px solid magenta;
 	margin: 0 auto;
     width: 800px;
-    height: 550px;
+    height: 555px;
     position: relative;
     background: blue;
 }
@@ -52,24 +52,19 @@
 #score {
     padding-right: 10px;
 }
-#tbl {
-    border-spacing: 0;
-    border-collapse: collapse;
-    table-layout: fixed;
-    width: 100%;
-}
-#tbl tr {
-    border: 0px solid black;
-}
-#tbl td {
-    font-family: Courier;
-    font-size: 9pt;
-    font-weight: bolder;
-    color: white;
-    text-align: center;
-    padding: 0px;
-    margin: 0px;
-}
 .wall {
     background: magenta;
+}
+.wrapper {
+    width:800px;
+    height:550px;
+    display:grid;
+    grid-template-columns:repeat(73,2fr);
+    grid-auto-rows:15px;
+    font-family: Courier;
+}
+
+.wrapper > div {
+    padding:0px;
+    color:white;
 }
